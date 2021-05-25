@@ -11,23 +11,47 @@ public class MenuScreen extends BaseScreen {
     Texture img;
     Vector2 pos;
     Vector2 v;
+    Vector2 targetPos;
+    Vector2 direction;
 
     @Override
     public void show() {
         super.show();
         img = new Texture("badlogic.jpg");
         pos = new Vector2();
+        targetPos = pos.cpy();
         v = new Vector2(2, 1);
     }
 
     @Override
     public void render(float delta) {
         super.render(delta);
-        pos.add(v.x, v.y);
+        if(distanceToTarget() != 0){
+            changeDirection();
+        }
         ScreenUtils.clear(1, 0, 0, 1);
         batch.begin();
         batch.draw(img, pos.x, pos.y);
         batch.end();
+    }
+
+    /*
+    Определим расстояние между целевой точкой и точкой положения картинки
+    Получим вектор расстояния, вычитая вектора точек и определим его длину
+     */
+    private float distanceToTarget() {
+        Vector2 distance = pos.cpy().sub(targetPos);
+        return distance.len();
+    }
+
+    /*
+    Получим вектор направления и (одновременно) скорости картинки
+    и прибавим его к текущему положению
+     */
+    private void changeDirection() {
+        direction = targetPos.cpy().sub(pos);
+        direction.nor();
+        pos.add(direction);
     }
 
     @Override
@@ -38,7 +62,7 @@ public class MenuScreen extends BaseScreen {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        pos.set(screenX, Gdx.graphics.getHeight() - screenY);
+        targetPos.set(screenX, Gdx.graphics.getHeight() - screenY);
         return super.touchDown(screenX, screenY, pointer, button);
     }
 }
