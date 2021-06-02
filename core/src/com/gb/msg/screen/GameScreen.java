@@ -2,10 +2,12 @@ package com.gb.msg.screen;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.gb.msg.base.BaseScreen;
 import com.gb.msg.math.Rect;
 import com.gb.msg.sprite.Background;
+import com.gb.msg.sprite.Ship;
 import com.gb.msg.sprite.Star;
 
 public class GameScreen extends BaseScreen {
@@ -18,6 +20,8 @@ public class GameScreen extends BaseScreen {
     private Background background;
     private Star[] stars;
 
+    private Ship mainShip;
+
     @Override
     public void show() {
         super.show();
@@ -28,6 +32,9 @@ public class GameScreen extends BaseScreen {
         for (int i = 0; i < stars.length; i++) {
             stars[i] = new Star(atlas);
         }
+        TextureRegion shipRegion = atlas.findRegion("main_ship");
+        shipRegion.setRegion(916,95,195,287);
+        mainShip = new Ship(shipRegion);
 
     }
 
@@ -45,6 +52,7 @@ public class GameScreen extends BaseScreen {
         for(Star star : stars){
             star.resize(worldBounds);
         }
+        mainShip.resize(worldBounds);
     }
 
     @Override
@@ -58,6 +66,7 @@ public class GameScreen extends BaseScreen {
         for(Star star : stars){
             star.update(delta);
         }
+        mainShip.update(delta);
     }
 
     public void draw() {
@@ -67,6 +76,19 @@ public class GameScreen extends BaseScreen {
         for(Star star : stars){
             star.draw(batch);
         }
+        mainShip.draw(batch);
         batch.end();
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        mainShip.keyDown(keycode);
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        mainShip.keyUp(keycode);
+        return false;
     }
 }
