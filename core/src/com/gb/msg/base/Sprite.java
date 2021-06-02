@@ -2,6 +2,7 @@ package com.gb.msg.base;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+
 import com.badlogic.gdx.math.Vector2;
 import com.gb.msg.math.Rect;
 
@@ -29,7 +30,7 @@ public class Sprite extends Rect {
 
     public void draw(SpriteBatch batch){
         batch.draw(
-                regions[0],
+                regions[frame],
                 getLeft(), getBottom(),
                 halfWidth, halfHeight,
                 getWidth(), getHeight(),
