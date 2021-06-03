@@ -2,12 +2,13 @@ package com.gb.msg.screen;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.gb.msg.base.BaseScreen;
 import com.gb.msg.math.Rect;
+import com.gb.msg.pool.BulletPool;
 import com.gb.msg.sprite.Background;
-import com.gb.msg.sprite.Ship;
+import com.gb.msg.sprite.MainShip;
 import com.gb.msg.sprite.Star;
 
 public class GameScreen extends BaseScreen {
@@ -20,7 +21,8 @@ public class GameScreen extends BaseScreen {
     private Background background;
     private Star[] stars;
 
-    private Ship mainShip;
+    private BulletPool bulletPool;
+    private MainShip mainShip;
 
     @Override
     public void show() {
@@ -32,16 +34,14 @@ public class GameScreen extends BaseScreen {
         for (int i = 0; i < stars.length; i++) {
             stars[i] = new Star(atlas);
         }
-        TextureRegion shipRegion = atlas.findRegion("main_ship");
-        shipRegion.setRegion(916,95,195,287);
-        mainShip = new Ship(shipRegion);
-
+        bulletPool = new BulletPool();
+        mainShip = new MainShip(atlas, bulletPool);
     }
 
     @Override
     public void render(float delta) {
-        super.render(delta);
         update(delta);
+        freeAllDestroyed();
         draw();
     }
 
@@ -60,6 +60,7 @@ public class GameScreen extends BaseScreen {
         super.dispose();
         bg.dispose();
         atlas.dispose();
+        bulletPool.dispose();
     }
 
     public void update(float delta) {
@@ -67,6 +68,11 @@ public class GameScreen extends BaseScreen {
             star.update(delta);
         }
         mainShip.update(delta);
+        bulletPool.updateActiveSprites(delta);
+    }
+
+    private void freeAllDestroyed(){
+        bulletPool.freeAllDestroyed();
     }
 
     public void draw() {
@@ -77,6 +83,7 @@ public class GameScreen extends BaseScreen {
             star.draw(batch);
         }
         mainShip.draw(batch);
+        bulletPool.drawActiveSprites(batch);
         batch.end();
     }
 
@@ -89,6 +96,18 @@ public class GameScreen extends BaseScreen {
     @Override
     public boolean keyUp(int keycode) {
         mainShip.keyUp(keycode);
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(Vector2 touch, int pointer, int button) {
+        mainShip.touchDown(touch, pointer, button);
+        return false;
+    }
+
+    @Override
+    public boolean touchUp(Vector2 touch, int pointer, int button) {
+        mainShip.touchUp(touch, pointer, button);
         return false;
     }
 }
