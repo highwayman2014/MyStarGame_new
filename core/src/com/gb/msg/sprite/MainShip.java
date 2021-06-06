@@ -7,18 +7,21 @@ import com.badlogic.gdx.math.Vector2;
 import com.gb.msg.base.Sprite;
 import com.gb.msg.math.Rect;
 import com.gb.msg.pool.BulletPool;
+import com.gb.msg.sounds.BulletSound;
 
 public class MainShip extends Sprite {
 
     public static final float HEIGHT = 0.15f;
     public static final float PADDING = 0.03f;
     private static final int INVALID_POINTER = -1;
+    private static final float TIME_TO_SHUT = 0.2f;
 
     private final Vector2 v0 = new Vector2(0.5f, 0);
     private final Vector2 v = new Vector2();
 
     private boolean pressedLeft;
     private boolean pressedRight;
+    private boolean autoShuttingOn;
 
     private int leftPointer = INVALID_POINTER;
     private int rightPointer = INVALID_POINTER;
@@ -28,14 +31,19 @@ public class MainShip extends Sprite {
     private TextureRegion bulletRegion;
     private Vector2 bulletV;
     private Vector2 bulletPos;
+    private BulletSound bulletSound;
+    private float autoShuttingTimer;
 
 
-    public MainShip(TextureAtlas atlas, BulletPool bulletPool) {
+    public MainShip(TextureAtlas atlas, BulletPool bulletPool, BulletSound bulletSound) {
         super(atlas.findRegion("main_ship"), 1, 2, 2);
         this.bulletPool = bulletPool;
         this.bulletRegion = atlas.findRegion("bulletMainShip");
         this.bulletV = new Vector2(0, 0.5f);
         this.bulletPos = new Vector2();
+        this.bulletSound = bulletSound;
+        this.autoShuttingOn = false;
+        this.autoShuttingTimer = 0f;
     }
 
     @Override
@@ -47,6 +55,19 @@ public class MainShip extends Sprite {
         }
         if (getRight() < worldBounds.getLeft()) {
             setLeft(worldBounds.getRight());
+        }
+        autoShut(delta);
+    }
+
+    private void autoShut(float delta) {
+        if (autoShuttingOn) {
+            if (autoShuttingTimer >= TIME_TO_SHUT) {
+                shut();
+                autoShuttingTimer = 0f;
+            } else {
+                autoShuttingTimer += delta;
+            }
+
         }
     }
 
@@ -73,8 +94,20 @@ public class MainShip extends Sprite {
             case Input.Keys.UP:
                 shut();
                 break;
+            case Input.Keys.DOWN:
+                changeAutoShuttingMode();
+                break;
         }
         return false;
+    }
+
+    private void changeAutoShuttingMode() {
+        if (autoShuttingOn) {
+            autoShuttingOn = false;
+        } else {
+            autoShuttingOn = true;
+            autoShuttingTimer = TIME_TO_SHUT;
+        }
     }
 
     public boolean keyUp(int keycode) {
@@ -155,5 +188,6 @@ public class MainShip extends Sprite {
         Bullet bullet = bulletPool.obtain();
         bulletPos.set(pos.x, pos.y + getHalfHeight());
         bullet.set(this, bulletRegion, bulletPos, bulletV, worldBounds, 1, 0.01f);
+        bulletSound.play(0.05f);
     }
 }
