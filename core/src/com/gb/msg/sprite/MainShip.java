@@ -1,21 +1,22 @@
 package com.gb.msg.sprite;
 
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.gb.msg.base.Ship;
 import com.gb.msg.base.Sprite;
 import com.gb.msg.math.Rect;
 import com.gb.msg.pool.BulletPool;
+import com.gb.msg.sounds.BulletSound;
+import com.gb.msg.sounds.LaserSound;
 
-public class MainShip extends Sprite {
+public class MainShip extends Ship {
 
     public static final float HEIGHT = 0.15f;
     public static final float PADDING = 0.03f;
     private static final int INVALID_POINTER = -1;
-
-    private final Vector2 v0 = new Vector2(0.5f, 0);
-    private final Vector2 v = new Vector2();
 
     private boolean pressedLeft;
     private boolean pressedRight;
@@ -23,25 +24,27 @@ public class MainShip extends Sprite {
     private int leftPointer = INVALID_POINTER;
     private int rightPointer = INVALID_POINTER;
 
-    private Rect worldBounds;
-    private BulletPool bulletPool;
-    private TextureRegion bulletRegion;
-    private Vector2 bulletV;
-    private Vector2 bulletPos;
-
-
-    public MainShip(TextureAtlas atlas, BulletPool bulletPool) {
+    public MainShip(TextureAtlas atlas, BulletPool bulletPool, Sound bulletSound) {
         super(atlas.findRegion("main_ship"), 1, 2, 2);
         this.bulletPool = bulletPool;
         this.bulletRegion = atlas.findRegion("bulletMainShip");
         this.bulletV = new Vector2(0, 0.5f);
         this.bulletPos = new Vector2();
+        this.bulletSound = bulletSound;
+        this.autoShuttingOn = false;
+        this.autoShuttingTimer = 0f;
+        v0 = new Vector2(0.5f, 0);
+        v = new Vector2();
+        timeToShut = 0.2f;
+        bulletHeight = 0.01f;
+        damage = 1;
+        hp = 100;
     }
 
     @Override
     public void update(float delta) {
-        pos.mulAdd(v, delta);
-
+        super.update(delta);
+        bulletPos.set(pos.x, pos.y + getHalfHeight());
         if (getLeft() > worldBounds.getRight()) {
             setRight(worldBounds.getLeft());
         }
@@ -73,8 +76,20 @@ public class MainShip extends Sprite {
             case Input.Keys.UP:
                 shut();
                 break;
+            case Input.Keys.DOWN:
+                changeAutoShuttingMode();
+                break;
         }
         return false;
+    }
+
+    public void changeAutoShuttingMode() {
+        if (autoShuttingOn) {
+            autoShuttingOn = false;
+        } else {
+            autoShuttingOn = true;
+            autoShuttingTimer = timeToShut;
+        }
     }
 
     public boolean keyUp(int keycode) {
@@ -151,9 +166,4 @@ public class MainShip extends Sprite {
         v.setZero();
     }
 
-    private void shut(){
-        Bullet bullet = bulletPool.obtain();
-        bulletPos.set(pos.x, pos.y + getHalfHeight());
-        bullet.set(this, bulletRegion, bulletPos, bulletV, worldBounds, 1, 0.01f);
-    }
 }
