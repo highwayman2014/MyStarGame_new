@@ -2,22 +2,21 @@ package com.gb.msg.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
+
 import com.gb.msg.base.BaseScreen;
 import com.gb.msg.math.Rect;
 import com.gb.msg.pool.BulletPool;
 import com.gb.msg.pool.EnemyShipPool;
-import com.gb.msg.sounds.BulletSound;
 import com.gb.msg.sprite.Background;
-import com.gb.msg.sprite.EnemyShip;
 import com.gb.msg.sprite.MainShip;
 import com.gb.msg.sprite.Star;
-
-import java.util.Random;
+import com.gb.msg.utils.EnemyEmitter;
 
 public class GameScreen extends BaseScreen {
 
@@ -33,13 +32,12 @@ public class GameScreen extends BaseScreen {
     private MainShip mainShip;
 
     private Music backgroundMusic;
-    private BulletSound bulletSound;
+    private Sound bulletSound;
+    private Sound laserSound;
 
     private EnemyShipPool enemyShipPool;
     private TextureRegion enemyRegion_0;
-
-    private Rect worldBounds;
-    private Random random;
+    private EnemyEmitter enemyEmitter;
 
     @Override
     public void show() {
@@ -52,12 +50,13 @@ public class GameScreen extends BaseScreen {
             stars[i] = new Star(atlas);
         }
         bulletPool = new BulletPool();
-        bulletSound = new BulletSound();
-        mainShip = new MainShip(atlas, bulletPool, bulletSound);
+        bulletSound = Gdx.audio.newSound(Gdx.files.internal("sounds/bullet.wav"));
+        laserSound = Gdx.audio.newSound(Gdx.files.internal("sounds/laser.wav"));
+        mainShip = new MainShip(atlas, bulletPool, laserSound);
         enemyRegion_0 = new TextureRegion(atlas.findRegion("enemy0"));
-        enemyShipPool = new EnemyShipPool();
+        enemyShipPool = new EnemyShipPool(worldBounds, bulletPool, bulletSound);
+        enemyEmitter = new EnemyEmitter(worldBounds, enemyShipPool, atlas);
         startMusic("sounds/music.mp3");
-        random = new Random();
     }
 
     private void startMusic(String path){
@@ -92,6 +91,7 @@ public class GameScreen extends BaseScreen {
         bulletPool.dispose();
         backgroundMusic.dispose();
         bulletSound.dispose();
+        laserSound.dispose();
         enemyShipPool.dispose();
     }
 
@@ -102,16 +102,7 @@ public class GameScreen extends BaseScreen {
         mainShip.update(delta);
         bulletPool.updateActiveSprites(delta);
         enemyShipPool.updateActiveSprites(delta);
-        if(random.nextFloat() <= 0.03f){
-            createEnemy();
-        }
-    }
-
-    private void createEnemy() {
-        EnemyShip enemyShip = enemyShipPool.obtain();
-        float enemySpeed = random.nextFloat() * -1;
-        float posX = random.nextFloat() - 0.5f;
-        enemyShip.set(enemyRegion_0, posX, enemySpeed, worldBounds, 0.15f);
+        enemyEmitter.generate(delta);
     }
 
     private void freeAllDestroyed(){

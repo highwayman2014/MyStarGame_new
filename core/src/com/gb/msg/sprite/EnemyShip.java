@@ -1,49 +1,61 @@
 package com.gb.msg.sprite;
 
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import com.gb.msg.base.Sprite;
+
+import com.gb.msg.base.Ship;
 import com.gb.msg.math.Rect;
-import com.gb.msg.utils.Regions;
+import com.gb.msg.pool.BulletPool;
 
-public class EnemyShip extends Sprite {
+public class EnemyShip extends Ship {
 
-    private Rect worldBounds;
-    private Vector2 v;
-    private float height;
-
-    public EnemyShip() {
-        regions = new TextureRegion[1];
+    public EnemyShip(Rect worldBounds, BulletPool bulletPool, Sound bulletSound) {
+        this.worldBounds = worldBounds;
+        this.bulletPool = bulletPool;
+        this.bulletSound = bulletSound;
+        v0 = new Vector2();
         v = new Vector2();
+        this.bulletV = new Vector2();
+        this.bulletPos = new Vector2();
     }
 
     public void set(
-            TextureRegion region,
-            float posX,
-            float speed,
-            Rect worldBounds,
-            float height){
-        this.regions = Regions.split(region, 1, 2, 2);
-        this.height = height;
+            TextureRegion[] regions,
+            Vector2 v0,
+            TextureRegion bulletRegion,
+            float bulletHeight,
+            float bulletVY,
+            int damage,
+            float timeToShut,
+            float height,
+            int hp){
+        this.regions = regions;
+        this.v0.set(v0);
+        this.bulletRegion = bulletRegion;
+        this.bulletHeight = bulletHeight;
+        this.bulletV.set(0f, bulletVY);
+        this.damage = damage;
+        this.timeToShut = timeToShut;
         setHeightProportion(height);
-        this.pos.set(posX, worldBounds.getHalfHeight());
-        this.v.set(0f, speed);
-        this.worldBounds = worldBounds;
+        this.hp = hp;
+        v.set(0, -0.3f);
+        autoShuttingOn = true;
     }
 
     @Override
     public void update(float delta) {
-        pos.mulAdd(v, delta);
-        if (isOutside(worldBounds)){
+        super.update(delta);
+        bulletPos.set(pos.x, pos.y - getHalfHeight());
+        if (getTop() < worldBounds.getTop()) {
+            v.set(v0);
+        } else {
+            autoShuttingTimer = timeToShut * 0.8f;
+        }
+        autoShut(delta);
+        if (worldBounds.isOutside(this)) {
             destroy();
         }
-    }
-
-    @Override
-    public void resize(Rect worldBounds) {
-        super.resize(worldBounds);
-        this.worldBounds = worldBounds;
-        setHeightProportion(this.height);
     }
 
 }
