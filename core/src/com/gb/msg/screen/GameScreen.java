@@ -14,6 +14,8 @@ import com.gb.msg.math.Rect;
 import com.gb.msg.pool.BulletPool;
 import com.gb.msg.pool.EnemyShipPool;
 import com.gb.msg.sprite.Background;
+import com.gb.msg.sprite.Bullet;
+import com.gb.msg.sprite.EnemyShip;
 import com.gb.msg.sprite.MainShip;
 import com.gb.msg.sprite.Star;
 import com.gb.msg.utils.EnemyEmitter;
@@ -34,6 +36,7 @@ public class GameScreen extends BaseScreen {
     private Music backgroundMusic;
     private Sound bulletSound;
     private Sound laserSound;
+    private Sound explosionSound;
 
     private EnemyShipPool enemyShipPool;
     private TextureRegion enemyRegion_0;
@@ -52,6 +55,7 @@ public class GameScreen extends BaseScreen {
         bulletPool = new BulletPool();
         bulletSound = Gdx.audio.newSound(Gdx.files.internal("sounds/bullet.wav"));
         laserSound = Gdx.audio.newSound(Gdx.files.internal("sounds/laser.wav"));
+        explosionSound = Gdx.audio.newSound(Gdx.files.internal("sounds/explosion.wav"));
         mainShip = new MainShip(atlas, bulletPool, laserSound);
         enemyRegion_0 = new TextureRegion(atlas.findRegion("enemy0"));
         enemyShipPool = new EnemyShipPool(worldBounds, bulletPool, bulletSound);
@@ -68,8 +72,30 @@ public class GameScreen extends BaseScreen {
     @Override
     public void render(float delta) {
         update(delta);
+        checkCollisions();
         freeAllDestroyed();
         draw();
+    }
+
+    private void checkCollisions() {
+        for (EnemyShip enemyShip : enemyShipPool.getActiveObjects()) {
+            if (!enemyShip.isOutside(mainShip)) {
+                explosionSound.play(0.15f);
+                enemyShip.destroy();
+                continue;
+            }
+            for (Bullet bullet : bulletPool.getActiveObjects()) {
+                if (bullet.getOwner() != mainShip) {
+                    continue;
+                }
+                if (!enemyShip.isOutside(bullet)) {
+                    explosionSound.play(0.15f);
+                    enemyShip.destroy();
+                    bullet.destroy();
+                    break;
+                }
+            }
+        }
     }
 
     @Override
