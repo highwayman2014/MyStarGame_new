@@ -18,6 +18,7 @@ public class MainShip extends Ship {
     public static final float HEIGHT = 0.15f;
     public static final float PADDING = 0.03f;
     private static final int INVALID_POINTER = -1;
+    private static final int INIT_HP = 10;
 
     private boolean pressedLeft;
     private boolean pressedRight;
@@ -33,14 +34,12 @@ public class MainShip extends Ship {
         this.bulletV = new Vector2(0, 0.5f);
         this.bulletPos = new Vector2();
         this.bulletSound = bulletSound;
-        this.autoShuttingOn = false;
-        this.autoShuttingTimer = 0f;
         v0 = new Vector2(0.5f, 0);
         v = new Vector2();
         timeToShut = 0.2f;
         bulletHeight = 0.01f;
         damage = 1;
-        hp = 100;
+        newGame();
     }
 
     @Override
@@ -177,4 +176,12 @@ public class MainShip extends Ship {
         v.setZero();
     }
 
+    public void newGame() {
+        flushDestroy();
+        hp = INIT_HP;
+        autoShuttingOn = false;
+        autoShuttingTimer = 0f;
+        pos.x = 0f;
+        stop();
+    }
 }
