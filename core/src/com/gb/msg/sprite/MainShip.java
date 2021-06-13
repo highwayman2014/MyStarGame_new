@@ -9,6 +9,7 @@ import com.gb.msg.base.Ship;
 import com.gb.msg.base.Sprite;
 import com.gb.msg.math.Rect;
 import com.gb.msg.pool.BulletPool;
+import com.gb.msg.pool.ExplosionPool;
 import com.gb.msg.sounds.BulletSound;
 import com.gb.msg.sounds.LaserSound;
 
@@ -24,8 +25,9 @@ public class MainShip extends Ship {
     private int leftPointer = INVALID_POINTER;
     private int rightPointer = INVALID_POINTER;
 
-    public MainShip(TextureAtlas atlas, BulletPool bulletPool, Sound bulletSound) {
+    public MainShip(TextureAtlas atlas, ExplosionPool explosionPool, BulletPool bulletPool, Sound bulletSound) {
         super(atlas.findRegion("main_ship"), 1, 2, 2);
+        this.explosionPool = explosionPool;
         this.bulletPool = bulletPool;
         this.bulletRegion = atlas.findRegion("bulletMainShip");
         this.bulletV = new Vector2(0, 0.5f);
@@ -90,6 +92,15 @@ public class MainShip extends Ship {
             autoShuttingOn = true;
             autoShuttingTimer = timeToShut;
         }
+    }
+
+    public boolean isBulletCollision(Rect bullet) {
+        return !(
+                bullet.getRight() < getLeft()
+                        || bullet.getLeft() > getRight()
+                        || bullet.getBottom() > pos.y
+                        || bullet.getTop() < getBottom()
+        );
     }
 
     public boolean keyUp(int keycode) {
