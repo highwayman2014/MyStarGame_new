@@ -168,6 +168,8 @@ public class GameScreen extends BaseScreen {
             bulletPool.updateActiveSprites(delta);
             enemyShipPool.updateActiveSprites(delta);
             enemyEmitter.generate(delta);
+        } else {
+            newGame.update(delta);
         }
     }
 
